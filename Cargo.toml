@@ -1,0 +1,29 @@
+[package]
+name = "emulator_run_ci"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+
+[dependencies]
+cranelift-reader = {path  = "../../../../../reader" , version = "*"}
+cranelift-codegen = {path = "../../../../../codegen" , version = "*"}
+cranelift-frontend = {path = "../../../../../frontend" , version = "*"}
+cranelift-native = {path = "../../../../../native" , version = "*"}
+anyhow = "1.0.57"
+thiserror = "1.0.31"
+log = "0.4.17"
+memmap2 = "0.5.3"
+filecheck = "0.5.0"
+target-lexicon = "0.12.3"
+unicorn-engine = "2.0.0-rc7"
+walkdir = "2"
+
+
+ 
+
+
+[[bin]]
+name = "run_one"
+path = "src/main.rs"
