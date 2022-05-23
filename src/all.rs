@@ -21,23 +21,53 @@ fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
 }
 
 fn main() {
-    let mut x = std::process::Command::new("cargo");
-    x.arg("build");
-    x.output().unwrap();
-    let path = Path::new("D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests");
-    visit_dirs(path, &|f| {
-        let filename = f.file_name().into_string().unwrap();
-        if !filename.ends_with(".clif") {
-            return;
-        }
-        if filename.contains("simd") {
-            println!("skip, all simd not implemented,{}", filename);
-            return;
-        }
-        let p = path.clone().join(filename);
-        let x = runone::run(p.as_path(), None, Some("riscv64")).unwrap();
+    {
+        let mut x = std::process::Command::new("cargo");
+        x.arg("build");
+        let output = x.output().unwrap();
+        println!("{}", String::from_utf8_lossy(&output.stdout[..]));
+        println!("{}", String::from_utf8_lossy(&output.stdout[..]));
+    }
+    let dir = String::from("../wasmtime/cranelift/filetests/filetests/runtests/");
 
-        parse_test(text, options);
-        println!("end ---- {:?} used {:?}.", p, x);
-    })
+    let files = vec![
+        "alias.clif",
+        "arithmetic.clif",
+        "atomic-cas.clif",
+        "bint.clif",
+        "br_table.clif",
+        "const.clif",
+        "div-checks.clif",
+        "i128-bint.clif",
+        "i128-bitops.clif",
+        "i128-br.clif",
+        "i128-bornot.clif",
+        "icmp-eq.clif",
+        "icmp-ne.clif",
+        "icmp-sge.clif",
+        "icmp-sgt.clif",
+        "icmp-sle.clif",
+        "icmp-slt.clif",
+        "icmp-uge.clif",
+        "icmp-ugt.clif",
+        "icmp-ule.clif",
+        "icmp-ult.clif",
+        "umulhi.clif",
+        "i128-br.clif",
+        "i128-bricmp.clif",
+    ];
+
+    for f in files {
+        let mut cmd = std::process::Command::new("./target/debug/run_one.exe");
+        let mut path = dir.clone();
+        path.push_str(f);
+        cmd.arg(path.as_str());
+        let output = cmd.output().unwrap();
+        println!("{}", String::from_utf8_lossy(&output.stdout[..]));
+        println!("{}", String::from_utf8_lossy(&output.stdout[..]));
+        let code = output.status.code().unwrap();
+        if code != 0 {
+            println!("test no ok for {} , code : {}", f, code);
+        }
+    }
 }

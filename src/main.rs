@@ -8,10 +8,9 @@ mod test_run;
 use cranelift_codegen::ir;
 use std::borrow::Cow;
 use std::path::Path;
+mod test_compile;
 
-use log::{Level, LevelFilter, Metadata, Record};
-
-use walkdir;
+use log::{LevelFilter, Metadata, Record};
 
 struct SimpleLogger;
 
@@ -38,46 +37,15 @@ fn init_logger() {
 
 fn main() {
     init_logger();
-    // let path = Path::new("D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests");
-    // visit_dirs(path, &|f| {
-    //     let filename = f.file_name().into_string().unwrap();
-    //     if !filename.ends_with(".clif") {
-    //         return;
-    //     }
-    //     if filename.contains("simd") {
-    //         println!("skip, all simd not implemented,{}", filename);
-    //         return;
-    //     }
-    //     let p = path.clone().join(filename);
-    //     let x = runone::run(p.as_path(), None, Some("riscv64")).unwrap();
-    //     println!("end ---- {:?} used {:?}.", p, x);
-    // })
-    // .unwrap();
-    // let args: Vec<String> = std::env::args().collect();
-    // let p = Path::new(args[1].as_str());
-    // let x = runone::run(&p, None, Some("riscv64")).unwrap();
-    // println!("end ---- {:?} used {:?}.", p, x);
-
-    //
-
-    // run_one_file(&Path::new(
-    //     "D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests\\alias.clif",
-    // ));
-    // run_one_file(&Path::new(
-    //     "D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests\\arithmetic.clif",
-    // ));
-
-    // run_one_file(&Path::new(
-    //     "D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests\\atomic-cas-subword-little.clif",
-    // ));
-    // run_one_file(&Path::new(
-    //     "D:\\projects\\wasmtime\\cranelift\\filetests\\filetests\\runtests\\",
-    // ));
     let args: Vec<_> = std::env::args().collect();
-    if args.len() >= 1 {
+    if args.len() > 1 {
         run_one_file(&Path::new(args[1].as_str()));
     } else {
         run_one_file(&Path::new("xxx.clif"));
+
+        // run_one_file(&Path::new(
+        //     "../wasmtime/cranelift/filetests/filetests/isa/riscv64/atomic_store.clif",
+        // ));
     }
 }
 
@@ -93,6 +61,7 @@ fn run_one_file(p: &Path) {
 fn new_subtest(parsed: &TestCommand) -> anyhow::Result<Box<dyn SubTest>> {
     match parsed.command {
         "run" => test_run::subtest(parsed),
+        "compile" => test_compile::subtest(parsed),
         _ => subskip(parsed),
     }
 }
@@ -119,4 +88,12 @@ impl SubTest for TestSkip {
     fn run(&self, func: Cow<ir::Function>, context: &Context) -> anyhow::Result<()> {
         Ok(())
     }
+}
+
+fn pretty_anyhow_error(
+    func: &cranelift_codegen::ir::Function,
+    err: cranelift_codegen::CodegenError,
+) -> anyhow::Error {
+    let s = cranelift_codegen::print_errors::pretty_error(func, err);
+    anyhow::anyhow!("{}", s)
 }

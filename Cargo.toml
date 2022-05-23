@@ -7,10 +7,10 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-cranelift-reader = {path  = "../../../../../reader" , version = "*"}
-cranelift-codegen = {path = "../../../../../codegen" , version = "*"}
-cranelift-frontend = {path = "../../../../../frontend" , version = "*"}
-cranelift-native = {path = "../../../../../native" , version = "*"}
+cranelift-reader = {path  = "../wasmtime/cranelift/reader/" , version = "*"}
+cranelift-codegen = {path = "../wasmtime/cranelift/codegen" , version = "*"}
+cranelift-frontend = {path = "../wasmtime/cranelift/frontend" , version = "*"}
+cranelift-native = {path = "../wasmtime/cranelift/native" , version = "*"}
 anyhow = "1.0.57"
 thiserror = "1.0.31"
 log = "0.4.17"
@@ -19,11 +19,13 @@ filecheck = "0.5.0"
 target-lexicon = "0.12.3"
 unicorn-engine = "2.0.0-rc7"
 walkdir = "2"
-
-
- 
+rvemu = {path  = "../rvemu" , version = "*"}
 
 
 [[bin]]
 name = "run_one"
 path = "src/main.rs"
+
+[[bin]]
+name = "run_all"
+path = "src/all.rs"

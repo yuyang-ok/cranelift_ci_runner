@@ -59,7 +59,7 @@ impl SingleFunctionCompiler {
         let signature = function.signature.clone();
 
         // Compile the function itself.
-        let code_page = compile(function, &self.isa)?;
+        let code_page = compile2(function, &self.isa)?;
 
         // Compile the trampoline to call it, if necessary (it may be cached).
         let isa = &self.isa;
@@ -68,7 +68,7 @@ impl SingleFunctionCompiler {
             .entry(signature.clone())
             .or_insert_with(|| {
                 let ir = make_trampoline(&signature, isa);
-                let code = compile(ir, isa).expect("failed to compile trampoline");
+                let code = compile2(ir, isa).expect("failed to compile trampoline");
                 Trampoline::new(code)
             });
 
@@ -147,6 +147,22 @@ impl<'a> CompiledFunction<'a> {
             trampoline,
         }
     }
+
+    // fn call2() -> Vec<DataValue> {
+    //     {
+    //         use std::io::Write;
+    //         let mut file = std::fs::File::create("d://code.bin").unwrap();
+    //         file.write_all(&self.code[..]).unwrap();
+    //         let mut file = std::fs::File::create("d://trampoline.bin").unwrap();
+    //         file.write_all(&self.trampoline.code[..]).unwrap();
+    //     }
+    //     use rvemu::emulator::Emulator;
+    //     let mut values = UnboxedValues::make_arguments(arguments, &self.signature);
+    //     let emulator = Emulator::new();
+
+    //     emulator.initialize_dram();
+    //     emulator.start();
+    // }
 
     pub fn call(&self, arguments: &[DataValue]) -> Vec<DataValue> {
         {
@@ -237,6 +253,16 @@ impl<'a> CompiledFunction<'a> {
                 function_addr,
                 function_addr + self.code.len() as u64,
                 |e, pc, _code_length| {
+                    if pc == function_addr {
+                        let print_arg = |name: &str, r: i32| {
+                            let value = e.reg_read(r).unwrap();
+                            println!("{}_u64:{},{}_i64:{}", name, value, name, value as i64)
+                        };
+                        for i in 0..=7 {
+                            print_arg(format!("a{}", i).as_str(), (RegisterRISCV::X10 as i32) + i);
+                        }
+                    }
+
                     let mut data = [0; 4];
                     e.mem_read(pc, &mut data[..]).unwrap();
                     println!("test_function:{}", Self::dis(&data[..]));
@@ -407,6 +433,8 @@ impl<'a> CompiledFunction<'a> {
         }
         println!("\n")
     }
+
+    //
 }
 
 /// A container for laying out the [ValueData]s in memory in a way that the [Trampoline] can
@@ -479,11 +507,26 @@ impl UnboxedValues {
 ///
 /// This currently returns a [Mmap], a type from an external crate, so we wrap this up before
 /// exposing it in public APIs.
-fn compile(function: Function, isa: &Riscv64Backend) -> Result<Vec<u8>, CompilationError> {
-    // Compile and encode the result to machine code.
-    let code_info = isa.compile_function_test(&function, true).unwrap();
+// fn compile(function: Function, isa: &Riscv64Backend) -> Result<Vec<u8>, CompilationError> {
+//     // Compile and encode the result to machine code.
+//     let code_info = isa.compile_function_test(&function, true).unwrap();
+//     Ok(Vec::from_iter(code_info.buffer.data().iter().map(|v| *v)))
+// }
 
-    Ok(Vec::from_iter(code_info.buffer.data().iter().map(|v| *v)))
+fn compile2(function: Function, isa: &Riscv64Backend) -> Result<Vec<u8>, CompilationError> {
+    // Compile and encode the result to machine code.
+    use cranelift_codegen::Context;
+    let mut c = Context::for_function(function);
+    c.want_disasm = true;
+    c.compile(isa).unwrap();
+    Ok(Vec::from_iter(
+        c.mach_compile_result
+            .unwrap()
+            .buffer
+            .data()
+            .iter()
+            .map(|v| *v),
+    ))
 }
 
 /// Build the Cranelift IR for moving the memory-allocated [DataValue]s to their correct location
