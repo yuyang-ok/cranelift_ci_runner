@@ -5,20 +5,22 @@ pub mod runone;
 use cranelift_reader::TestCommand;
 mod runtest_environment;
 mod test_run;
-use cranelift_codegen::ir;
-use std::borrow::Cow;
-use std::path::Path;
+use cranelift_codegen::isa::lookup_by_name;
+use cranelift_codegen::{ir, isa::TargetIsa};
+use std::{borrow::Cow, path::Path};
+
+mod call;
 mod test_compile;
 
 use log::{LevelFilter, Metadata, Record};
 
-struct SimpleLogger;
+struct SimpleLogger(log::Level);
 
-static SIMPLE_LOGGER: SimpleLogger = SimpleLogger;
+static SIMPLE_LOGGER: SimpleLogger = SimpleLogger(log::Level::Debug);
 
 impl log::Log for SimpleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        true
+        metadata.level() >= self.0
     }
 
     fn log(&self, record: &Record) {
@@ -42,9 +44,21 @@ fn main() {
         run_one_file(&Path::new(args[1].as_str()));
     } else {
         run_one_file(&Path::new("xxx.clif"));
+        // run_one_file(&Path::new(
+        //     "../wasmtime/cranelift/filetests/filetests/runtests/alias.clif",
+        // ));
+        // run_one_file(&Path::new(
+        //     "../wasmtime/cranelift/filetests/filetests/runtests/arithmetic.clif",
+        // ));
+        // run_one_file(&Path::new(
+        //     "../wasmtime/cranelift/filetests/filetests/runtests/atomic-cas.clif",
+        // ));
 
         // run_one_file(&Path::new(
         //     "../wasmtime/cranelift/filetests/filetests/isa/riscv64/atomic_store.clif",
+        // ));
+        // run_one_file(&Path::new(
+        //     "../wasmtime/cranelift/filetests/filetests/isa/riscv64/condbr.clif",
         // ));
     }
 }
@@ -96,4 +110,12 @@ fn pretty_anyhow_error(
 ) -> anyhow::Error {
     let s = cranelift_codegen::print_errors::pretty_error(func, err);
     anyhow::anyhow!("{}", s)
+}
+
+pub fn build_backend() -> Box<dyn TargetIsa> {
+    let builder = lookup_by_name("riscv64").unwrap();
+    let shared_builder = cranelift_codegen::settings::builder();
+    let shared_flags = cranelift_codegen::settings::Flags::new(shared_builder);
+    let isa = builder.finish(shared_flags).unwrap();
+    isa
 }

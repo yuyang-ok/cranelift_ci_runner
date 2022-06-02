@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 cranelift-reader = {path  = "../wasmtime/cranelift/reader/" , version = "*"}
-cranelift-codegen = {path = "../wasmtime/cranelift/codegen" , version = "*"}
+cranelift-codegen = {path = "../wasmtime/cranelift/codegen" , version = "*" , features = ["riscv64"]}
 cranelift-frontend = {path = "../wasmtime/cranelift/frontend" , version = "*"}
 cranelift-native = {path = "../wasmtime/cranelift/native" , version = "*"}
 anyhow = "1.0.57"
@@ -17,7 +17,6 @@ log = "0.4.17"
 memmap2 = "0.5.3"
 filecheck = "0.5.0"
 target-lexicon = "0.12.3"
-unicorn-engine = "2.0.0-rc7"
 walkdir = "2"
 rvemu = {path  = "../rvemu" , version = "*"}
 
@@ -29,3 +28,5 @@ path = "src/main.rs"
 [[bin]]
 name = "run_all"
 path = "src/all.rs"
+
+ 

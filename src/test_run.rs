@@ -4,7 +4,7 @@
 
 use crate::compiler::SingleFunctionCompiler;
 use crate::runtest_environment::RuntestEnvironment;
-use crate::{Context, SubTest};
+use crate::{build_backend, Context, SubTest};
 use cranelift_codegen::ir::ArgumentPurpose;
 use cranelift_codegen::isa::{lookup, lookup_by_name};
 use cranelift_codegen::{ir, settings};
@@ -40,7 +40,10 @@ impl SubTest for TestRun {
     fn run(&self, func: Cow<ir::Function>, context: &Context) -> anyhow::Result<()> {
         let test_env = RuntestEnvironment::parse(&context.details.comments[..])?;
         use cranelift_codegen::isa::riscv64::Riscv64Backend;
-        let mut compiler = SingleFunctionCompiler::new(Riscv64Backend::new_test());
+
+        let isa = build_backend();
+
+        let mut compiler = SingleFunctionCompiler::new(isa);
         for comment in context.details.comments.iter() {
             if let Some(command) = parse_run_command(comment.text, &func.signature)? {
                 trace!("Parsed run command: {}", command);
@@ -74,7 +77,7 @@ impl SubTest for TestRun {
                         }
                         args.extend_from_slice(run_args);
 
-                        Ok(compiled_fn.call(&args))
+                        Ok(compiled_fn.call2 (&args))
                     })
                     .map_err(|s| anyhow::anyhow!("{}", s))?;
             }
