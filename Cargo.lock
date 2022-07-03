@@ -43,14 +43,14 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cranelift-bforest"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-entity",
 ]
 
 [[package]]
 name = "cranelift-codegen"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-bforest",
  "cranelift-codegen-meta",
@@ -66,22 +66,22 @@ dependencies = [
 
 [[package]]
 name = "cranelift-codegen-meta"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-codegen-shared",
 ]
 
 [[package]]
 name = "cranelift-codegen-shared"
-version = "0.85.0"
+version = "0.86.0"
 
 [[package]]
 name = "cranelift-entity"
-version = "0.85.0"
+version = "0.86.0"
 
 [[package]]
 name = "cranelift-frontend"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-codegen",
  "log",
@@ -90,12 +90,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cranelift-interpreter"
+version = "0.86.0"
+dependencies = [
+ "cranelift-codegen",
+ "cranelift-entity",
+ "log",
+ "smallvec",
+ "thiserror",
+]
+
+[[package]]
 name = "cranelift-isle"
-version = "0.85.0"
+version = "0.86.0"
 
 [[package]]
 name = "cranelift-native"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-codegen",
  "libc",
@@ -104,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "cranelift-reader"
-version = "0.85.0"
+version = "0.86.0"
 dependencies = [
  "cranelift-codegen",
  "smallvec",
@@ -118,11 +129,13 @@ dependencies = [
  "anyhow",
  "cranelift-codegen",
  "cranelift-frontend",
+ "cranelift-interpreter",
  "cranelift-native",
  "cranelift-reader",
  "filecheck",
  "log",
  "memmap2",
+ "rand",
  "rvemu",
  "target-lexicon",
  "thiserror",
@@ -146,6 +159,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c31b6d751ae2c7f11320402d34e41349dd1016f8d5d45e48c4312bc8625af50c"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9be70c98951c83b8d2f8f60d7065fa6d5146873094452a1008da8c2f1e4205ad"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "wasi",
 ]
 
 [[package]]
@@ -219,6 +243,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ppv-lite86"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb9f9e6e233e5c4a35559a617bf40a4ec447db2e84c20b55a6f83167b7e57872"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -237,10 +267,40 @@ dependencies = [
 ]
 
 [[package]]
-name = "regalloc2"
-version = "0.1.3"
+name = "rand"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "904196c12c9f55d3aea578613219f493ced8e05b3d0c6a42d11cb4142d8b4879"
+checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
+dependencies = [
+ "libc",
+ "rand_chacha",
+ "rand_core",
+]
+
+[[package]]
+name = "rand_chacha"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
+dependencies = [
+ "ppv-lite86",
+ "rand_core",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
+dependencies = [
+ "getrandom",
+]
+
+[[package]]
+name = "regalloc2"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a8d23b35d7177df3b9d31ed8a9ab4bf625c668be77a319d4f5efd4a5257701c"
 dependencies = [
  "fxhash",
  "log",
@@ -349,6 +409,12 @@ dependencies = [
  "winapi",
  "winapi-util",
 ]
+
+[[package]]
+name = "wasi"
+version = "0.10.2+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
 
 [[package]]
 name = "wasm-bindgen"

@@ -39,7 +39,6 @@ impl SubTest for TestRun {
 
     fn run(&self, func: Cow<ir::Function>, context: &Context) -> anyhow::Result<()> {
         let test_env = RuntestEnvironment::parse(&context.details.comments[..])?;
-        use cranelift_codegen::isa::riscv64::Riscv64Backend;
 
         let isa = build_backend();
 

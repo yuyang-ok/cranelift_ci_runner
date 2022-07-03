@@ -2,7 +2,6 @@ use anyhow::Result;
 use core::mem;
 use cranelift_codegen::data_value::DataValue;
 use cranelift_codegen::ir::{condcodes::IntCC, Function, InstBuilder, Signature};
-use cranelift_codegen::isa::riscv64::Riscv64Backend;
 use cranelift_codegen::isa::TargetIsa;
 use cranelift_codegen::{ir, settings, CodegenError, Context};
 use cranelift_frontend::{FunctionBuilder, FunctionBuilderContext};
@@ -181,15 +180,18 @@ impl<'a> CompiledFunction<'a> {
         emulator.cpu.xregs.write(11, arguments_area);
         emulator.initialize_pc(rvemu::bus::DRAM_BASE);
         emulator.test_run_end_at(end_at).unwrap();
-        for k in 0..values.0.len() {
+        for k in 0..self.signature.returns.len() {
             let addr = arguments_area + (k as u64) * 16;
             let v1 = emulator.cpu.bus.read(addr, DOUBLEWORD).unwrap() as u128;
             let v2 = emulator.cpu.bus.read(addr + 8, DOUBLEWORD).unwrap() as u128;
             let v: u128 = v1 | v2 << 64;
             values.0[k] = v;
+            println!("#############{:?}", v);
         }
 
-        values.collect_returns(&self.signature)
+        let result = values.collect_returns(&self.signature);
+        println!("!!!!!!!!!!!!!!!!!!!!!{:?}", result);
+        return result;
     }
 
     //
@@ -246,18 +248,6 @@ impl UnboxedValues {
             v.extend(data.to_le_bytes().into_iter());
         }
         v
-    }
-
-    fn wirte_vec_u8_back(&mut self, data: &Vec<u8>) {
-        let mut step = 0;
-        while step < data.len() {
-            let mut u128_tmp_data = [0 as u8; 16];
-            for i in 0..16 {
-                u128_tmp_data[(i + step) % 16] = data[step + i];
-            }
-            self.0[step / 16] = u128::from_le_bytes(u128_tmp_data);
-            step += 16;
-        }
     }
 }
 
