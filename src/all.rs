@@ -88,6 +88,10 @@ fn main() {
                 if !entry.file_name().to_str().unwrap().ends_with(".clif") {
                     return;
                 }
+                if entry.path().to_str().unwrap().contains( "elf-gd") {
+                    // remove me.
+                    return;
+                }
                 println!("{:?}", &entry);
                 let mut cmd = std::process::Command::new("./target/debug/run_one");
                 cmd.arg(entry.path().to_str().unwrap());
@@ -97,17 +101,18 @@ fn main() {
                 let code = output.status.code().unwrap();
 
                 if code != 0 {
-                    println!(
-                        "test no ok for {:?} , code : {}",
-                        entry.path().to_str(),
-                        code
-                    );
+                    // println!(
+                    //     "!!!!!!!!!!!!!!!test no ok for {:?} , code : {}",
+                    //     entry.path().to_str(),
+                    //     code
+                    // );
                     // std::process::exit(code);
+                    panic!("{:?}", entry.path().to_str());
                 }
             },
         )
         .unwrap();
     };
-     out();
-    run();
+    out();
+    // run();
 }

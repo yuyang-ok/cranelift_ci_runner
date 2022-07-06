@@ -61,7 +61,7 @@ impl SubTest for TestCompile {
     }
 }
 
-const just_update_test: bool = false;
+const just_update_test: bool = true;
 
 fn check_precise_output(text: &str, context: &Context) -> Result<()> {
     let actual = text.lines().collect::<Vec<_>>();
