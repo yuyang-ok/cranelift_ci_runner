@@ -8,13 +8,13 @@ edition = "2021"
 
 [dependencies]
 cranelift-reader = {path  = "../wasmtime/cranelift/reader/" , version = "*" }
-cranelift-codegen = {path = "../wasmtime/cranelift/codegen" , version = "*" , features = ["riscv64gc" , "isle-in-source-tree"]}
+cranelift-codegen = {path = "../wasmtime/cranelift/codegen" , version = "*" , features = ["riscv64" , "trace-log" ]}
 cranelift-frontend = {path = "../wasmtime/cranelift/frontend" , version = "*"}
 cranelift-native = {path = "../wasmtime/cranelift/native" , version = "*"}
 cranelift-interpreter = {path = "../wasmtime/cranelift/interpreter" , version = "*"}
 anyhow = "1.0.57"
 thiserror = "1.0.31"
-log = "0.4.17"
+log = "0.4.8"
 memmap2 = "0.5.3"
 filecheck = "0.5.0"
 target-lexicon = "0.12.3"

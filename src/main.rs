@@ -18,11 +18,11 @@ use log::{LevelFilter, Metadata, Record};
 
 struct SimpleLogger(log::Level);
 
-static SIMPLE_LOGGER: SimpleLogger = SimpleLogger(log::Level::Debug);
+static SIMPLE_LOGGER: SimpleLogger = SimpleLogger(log::Level::Trace);
 
 impl log::Log for SimpleLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        true
+        metadata.level() >= self.0
     }
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
@@ -129,80 +129,28 @@ pub fn build_backend() -> Box<dyn TargetIsa> {
 
 #[test]
 fn one_by_one_run_sh() {
-    let s  : String = "
-    alias.clif                                     i128-icmp-overflow.clif                        simd-icmp-of.clif
-    arithmetic.clif                                i128-icmp.clif                                 simd-icmp-sge.clif
-    atomic-cas-little.clif                         i128-load-store.clif                           simd-icmp-sgt.clif
-    atomic-cas-subword-big.clif                    i128-reduce.clif                               simd-icmp-sle.clif
-    atomic-cas-subword-little.clif                 i128-rotate.clif                               simd-icmp-slt.clif
-    atomic-cas.clif                                i128-select.clif                               simd-icmp-uge.clif
-    atomic-rmw-little.clif                         i128-shifts-small-types.clif                   simd-icmp-ugt.clif
-    atomic-rmw-subword-big.clif                    i128-shifts.clif                               simd-icmp-ule.clif
-    atomic-rmw-subword-little.clif                 iabs.clif                                      simd-icmp-ult.clif
-    bextend.clif                                   iaddcarry.clif                                 simd-insertlane.clif
-    bint.clif                                      iaddcin.clif                                   simd-lane-access.clif
-    bitops.clif                                    iaddcout.clif                                  simd-logical.clif
-    bitrev.clif                                    icmp-eq.clif                                   simd-saddsat-aarch64.clif
-    bmask.clif                                     icmp-ne.clif                                   simd-saddsat.clif
-    br.clif                                        icmp-nof.clif                                  simd-shuffle.clif
-    br_icmp.clif                                   icmp-of.clif                                   simd-smulhi.clif
-    br_icmp_overflow.clif                          icmp-sge.clif                                  simd-snarrow-aarch64.clif
-    br_table.clif                                  icmp-sgt.clif                                  simd-snarrow.clif
-    breduce.clif                                   icmp-sle.clif                                  simd-splat.clif
-    cls-aarch64.clif                               icmp-slt.clif                                  simd-sqmulroundsat-aarch64.clif
-    cls-interpret.clif                             icmp-uge.clif                                  simd-sqmulroundsat.clif
-    clz-interpret.clif                             icmp-ugt.clif                                  simd-ssubsat-aarch64.clif
-    clz.clif                                       icmp-ule.clif                                  simd-ssubsat.clif
-    const.clif                                     icmp-ult.clif                                  simd-swidenhigh.clif
-    ctz-interpret.clif                             icmp.clif                                      simd-swidenlow.clif
-    ctz.clif                                       integer-minmax.clif                            simd-swizzle.clif
-    div-checks.clif                                isubbin.clif                                   simd-uaddsat-aarch64.clif
-    extend.clif                                    isubborrow.clif                                simd-uaddsat.clif
-    fibonacci.clif                                 isubbout.clif                                  simd-umulhi.clif
-    float-compare.clif                             load-op-store.clif                             simd-unarrow-aarch64.clif
-    float.clif                                     popcnt-interpret.clif                          simd-unarrow.clif
-    fmin-max-pseudo-vector.clif                    popcnt.clif                                    simd-usubsat-aarch64.clif
-    fmin-max-pseudo.clif                           select.clif                                    simd-usubsat.clif
-    heap.clif                                      shifts-small-types.clif                        simd-uunarrow.clif
-    i128-arithmetic.clif                           shifts.clif                                    simd-uwidenhigh.clif
-    i128-bandnot.clif                              simd-arithmetic-nondeterministic-aarch64.clif  simd-uwidenlow.clif
-    i128-bextend.clif                              simd-arithmetic-nondeterministic-x86_64.clif   simd-valltrue.clif
-    i128-bint.clif                                 simd-arithmetic.clif                           simd-vanytrue.clif
-    i128-bitops-count.clif                         simd-bitselect-to-vselect.clif                 simd-vconst.clif
-    i128-bitops.clif                               simd-bitselect.clif                            simd-vhighbits.clif
-    i128-bitrev.clif                               simd-bitwise-run.clif                          simd-vselect.clif
-    i128-bmask.clif                                simd-bitwise.clif                              simd-wideningpairwisedotproducts.clif
-    i128-bornot.clif                               simd-bmask.clif                                simd_compare_zero.clif
-    i128-br.clif                                   simd-comparison.clif                           smulhi-aarch64.clif
-    i128-breduce.clif                              simd-conversion.clif                           smulhi.clif
-    i128-bricmp.clif                               simd-extractlane.clif                          spill-reload.clif
-    i128-bxornot.clif                              simd-iabs.clif                                 stack-addr-32.clif
-    i128-cls.clif                                  simd-iaddpairwise.clif                         stack-addr-64.clif
-    i128-concat-split.clif                         simd-icmp-eq.clif                              stack.clif
-    i128-const.clif                                simd-icmp-ne.clif                              umulhi.clif
-    i128-extend.clif                               simd-icmp-nof.clif                             xxx.clif
-    ".into() ;
+    let s: Vec<_> =
+        std::fs::read_dir("/home/yuyang/projects/wasmtime/cranelift/filetests/filetests/runtests")
+            .unwrap()
+            .into_iter()
+            .map(|r| r.unwrap().file_name())
+            .collect();
 
-    let s: Vec<_> = s
-        .split(" ")
-        .map(|s| s.trim())
-        .filter(|s| *s != "")
-        .collect();
     let mut script = String::from("");
 
     for x in s {
-        if x.contains("simd") {
+        if x.to_str().unwrap().contains("simd") {
             //todo:: remove when simd is supported.
             continue;
         }
-        script = script +  format!("RUST_BACKTRACE=1 ./target/riscv64gc-unknown-linux-gnu/debug/clif-util   test  -d  --verbose   cranelift/filetests/filetests/runtests/{}\n", x).as_str();
+        script = script +  format!("/home/yuyang/projects/qemu/build/qemu-riscv64 -L /usr/riscv64-linux-gnu -E LD_LIBRARY_PATH=/usr/riscv64-linux-gnu/lib -E RUST_BACKTRACE=0  -E RUST_LOG=error    ./target/riscv64gc-unknown-linux-gnu/debug/clif-util   test  --verbose   cranelift/filetests/filetests/runtests/{}\n",       x.to_str().unwrap()).as_str();
         script += format!(
             r#"if [ "$?" != 0 ] ;then 
                     echo "{} failed."
                     exit;
                 fi
         "#,
-            x
+            x.to_str().unwrap()
         )
         .as_str();
     }
@@ -220,14 +168,14 @@ fn xxx() {
     target aarch64
     target aarch64 has_lse
     target x86_64
-    target riscv64gc has_extension_a
+    target riscv64
     
     
     
-    function %i128_stack_store_load_big_offset() -> i32 {
+    function %i128_stack_store_load_big_offset() -> i64 {
     
     block0:
-        v2 = iconst.i32 xxxxxxxxxxxxxxxx
+        v2 = iconst.i64 xxxxxxxxxxxxxxxx
         return v2
     }
     ; run: %i128_stack_store_load_big_offset() == xxxxxxxxxxxxxxxx
@@ -238,7 +186,7 @@ fn xxx() {
     for _ in 0..10000 {
         use std::io::Write;
         let file_name = "abc.clif";
-        let file_content = s.replace("xxxxxxxxxxxxxxxx", format!("{}", rng.gen::<i32>()).as_str());
+        let file_content = s.replace("xxxxxxxxxxxxxxxx", format!("{}", rng.gen::<i64>()).as_str());
         let mut file = std::fs::File::create(file_name).expect("create failed");
         file.write_all(file_content.as_bytes())
             .expect("write failed");
@@ -246,3 +194,69 @@ fn xxx() {
         run_one_file(Path::new(file_name));
     }
 }
+
+#[test]
+fn fdsfsfsdf() {
+    fn xxx(name: &str, f: fn() -> [bool; 32]) {
+        let x = f();
+        println!("const {} : [bool; 32]= [", name);
+        for i in 0..=31 {
+            print!("{}{}", x[i], if i != 31 { "," } else { "" });
+            if (i + 1) % 4 == 0 {
+                println!("// {}-{}", i - 3, i);
+            }
+        }
+        println!("];");
+    }
+    xxx("CALLER_SAVE_X_REG", get_caller_save_x_gpr);
+    xxx("CALLEE_SAVE_X_REG", get_callee_save_x_gpr);
+    xxx("CALLER_SAVE_F_REG", get_caller_save_f_gpr);
+    xxx("CALLEE_SAVE_F_REG", get_callee_save_f_gpr);
+}
+
+fn get_caller_save_x_gpr() -> [bool; 32] {
+    let mut x: [bool; 32] = [false; 32];
+    for (i, v) in get_callee_save_x_gpr().iter().enumerate() {
+        if i == 0 || i == 3 || i == 4 {
+            continue;
+        }
+        x[i] = !v;
+    }
+    x
+}
+
+fn get_caller_save_f_gpr() -> [bool; 32] {
+    let mut x: [bool; 32] = [false; 32];
+    for (i, v) in get_callee_save_f_gpr().iter().enumerate() {
+        x[i] = !v;
+    }
+    x
+}
+
+fn get_callee_save_x_gpr() -> [bool; 32] {
+    let mut x = [false; 32];
+    x[2] = true;
+    for i in 8..=9 {
+        x[i] = true
+    }
+    for i in 18..=27 {
+        x[i] = true
+    }
+    x
+}
+
+fn get_callee_save_f_gpr() -> [bool; 32] {
+    let mut x = [false; 32];
+    for i in 8..9 {
+        x[i] = true;
+    }
+    for i in 18..=27 {
+        x[i] = true
+    }
+    x
+}
+
+// #[test]
+// fn dfdsfsdfs() {
+//     println!( " {}  {} " ，  )
+// }

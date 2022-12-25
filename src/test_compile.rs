@@ -50,13 +50,9 @@ impl SubTest for TestCompile {
     fn run(&self, func: Cow<ir::Function>, context: &Context) -> Result<()> {
         use cranelift_codegen::Context;
         let mut compiler = Context::for_function(func.clone().into_owned());
-        compiler.compile(build_backend().as_ref()).unwrap();
-        let disasm = compiler
-            .mach_compile_result
-            .unwrap()
-            .disasm
-            .unwrap()
-            .clone();
+        compiler.want_disasm = true;
+        let reuslt = compiler.compile(build_backend().as_ref()).unwrap();
+        let disasm = reuslt.disasm.clone().unwrap().clone();
         check_precise_output(disasm.as_str(), context)
     }
 }

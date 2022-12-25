@@ -88,7 +88,7 @@ fn main() {
                 if !entry.file_name().to_str().unwrap().ends_with(".clif") {
                     return;
                 }
-                if entry.path().to_str().unwrap().contains( "elf-gd") {
+                if entry.path().to_str().unwrap().contains("elf-gd") {
                     // remove me.
                     return;
                 }
@@ -116,3 +116,30 @@ fn main() {
     out();
     // run();
 }
+
+#[test]
+fn xxx() {
+    println!("{:b}", (1.0 as f32).max(f32::NAN),);
+}
+
+fn add(a: i8, b: i8) -> (i8, bool) {
+    a.overflowing_add(b)
+}
+fn ishl(a: i8) -> i8 {
+    -a
+}
+// 9 00719 92547 40992
+
+/*
+    +0 -0
+    fmax  should be a and
+        0 0 0
+        1 1 1
+        0 1 0
+        1 0 0
+    fmin
+        0 0 0
+        1 1 1
+        1 0 1
+        0 1 1
+*/
